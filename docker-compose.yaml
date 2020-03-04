@@ -1,17 +1,33 @@
 version: '3.3'
 services:
   app:
-    image: "tikazyq/artipub:latest"
+    # image: "tikazyq/artipub:latest"
+    build: .
     environment:
       MONGO_HOST: "mongo"
-      ARTIPUB_API_ADDRESS: "localhost:3000" # 后端API地址，如果安装地址不在本机，请修改为服务器IP地址+端口号（默认为3000）
-    ports:
-      - "8000:8000" # frontend
-      - "3000:3000" # backend
+      ARTIPUB_API_ADDRESS: "pub-api.shanyue.tech" # 后端API地址，如果安装地址不在本机，请修改为服务器IP地址+端口号（默认为3000）
+    # ports:
+    #   - "8000:8000" # frontend
+    #   - "3000:3000" # backend
+    labels:
+      - traefik.http.services.pub.loadbalancer.server.port=8000
+      - traefik.http.routers.pub.service=pub
+      - traefik.http.routers.pub.rule=Host(`pub.shanyue.tech`)
+      # - traefik.http.routers.pub.tls=true
+      # - traefik.http.routers.pub.tls.certresolver=le
+
+      - traefik.http.services.pubapi.loadbalancer.server.port=3000
+      - traefik.http.routers.pubapi.service=pubapi
+      - traefik.http.routers.pubapi.rule=Host(`pub-api.shanyue.tech`)
+      # - traefik.http.routers.pubapi.tls=true
+      # - traefik.http.routers.pubapi.tls.certresolver=le
     depends_on:
       - mongo
   mongo:
     image: mongo:latest
     restart: always
-    ports:
-      - "27017:27017"
+    
+networks:
+  default:
+    external:
+      name: traefik_default
